@@ -26,6 +26,7 @@ window.addEventListener('load', () => {
             this.speed = speed
             this.position = position
             this.size = {x: 30, y: 30}
+            this.in = true
         }
 
         update() {
@@ -36,7 +37,10 @@ window.addEventListener('load', () => {
             }
 
             // Ball bounces off ceiling
-            if (this.position.y < 0) this.speed.y *= -1
+            if (this.position.y < 0) {
+                this.speed.y *= -1
+                this.game.score++
+            }
 
             // Ball bounces off top of paddle
             if (this.game.checkCollision(this, this.game.paddle)
@@ -44,13 +48,28 @@ window.addEventListener('load', () => {
                 this.speed.y *= -1
             }
 
-            if (this.position.y > this.game.size.y - this.size.y) this.speed.y *= -1 // TODO: Temporary, remove this line
+            // Ball goes past bottom of window
+            if (this.position.y > this.game.size.y && this.in){
+                this.game.paddle.subtractLife()
+                if (this.game.paddle.lives <= 0) {
+                    this.game.over = true
+                    return
+                }
+                setTimeout(this.respawn.bind(this), 2000)
+                this.in = false
+            }
         }
 
         draw(context) {
             context.fillStyle = 'black'
             this.image ? context.drawImage(this.image, this.position.x, this.position.y, this.size.x, this.size.y)
             : context.fillRect(this.position.x, this.position.y, this.size.x, this.size.y)
+        }
+
+        respawn() {
+            this.position = {x: 10, y: 10}
+            this.speed.x = 10
+            this.in = true
         }
     }
 
@@ -61,6 +80,7 @@ window.addEventListener('load', () => {
             this.position = position ?? {x: this.game.size.x/2 - this.size.x/2, y: this.game.size.y - this.size.y - 30}
             this.speedX = 0
             this.maxSpeed = 15
+            this.lives = 3
             this.color = 'green'
         }
 
@@ -78,6 +98,47 @@ window.addEventListener('load', () => {
             context.fillStyle = this.color
             context.fillRect(this.position.x, this.position.y, this.size.x, this.size.y)
         }
+        
+        subtractLife() {
+            this.lives--
+        }
+    }
+
+    class UI {
+        constructor(game) {
+            this.game = game
+            this.fontSize = 25
+            this.fontFamily = 'Arial'
+            this.color = 'black'
+        }
+
+        draw(context) {
+            context.save()
+
+            context.fillStyle = this.color
+            // TODO? Consider adding shadows
+            context.font = `${this.fontSize}px ${this.fontFamily}`
+
+            // Score
+            context.fillText('Score: ' + this.game.score, 12, 30)
+
+            // Lives
+            context.textAlign = 'right'
+            context.fillText('Lives: ' + this.game.paddle.lives, this.game.size.x - 12, 30)
+
+            context.restore()
+        }
+
+        drawGameOver(context) {
+            context.fillStyle = this.color
+            context.font = `${this.fontSize * 2.5}px ${this.fontFamily}`
+            context.textAlign = 'center'
+
+            context.fillText('GAME OVER', this.game.size.x/2, this.game.size.y/2)
+            
+            context.font = `${this.fontSize * 1.5}px ${this.fontFamily}`
+            context.fillText('Better luck next time!', this.game.size.x/2, this.game.size.y * 0.6)
+        }
     }
 
     class Game {
@@ -87,6 +148,9 @@ window.addEventListener('load', () => {
             this.paddle = new Paddle(this)
             this.inputListener = new InputListener(this)
             this.keyEvents = []
+            this.ui = new UI(this)
+            this.score = 0
+            this.over = false
         }
 
         update() {
@@ -97,6 +161,7 @@ window.addEventListener('load', () => {
         draw(context) {
             this.ball.draw(context)
             this.paddle.draw(context)
+            this.ui.draw(context)
         }
 
         checkCollision(rect1, rect2) {
@@ -107,13 +172,22 @@ window.addEventListener('load', () => {
                 rect1.position.y + rect1.size.y > rect2.position.y
             )
         }
+
+        end(context) {
+            this.draw(context)
+            this.ui.drawGameOver(context)
+        }
     }
 
     function animate(timeStamp) {
         const deltaTime = timeStamp - lastTime // Also known as frame time
         lastTime = timeStamp
         cContext.clearRect(0, 0, canvas.width, canvas.height)
-        game.update()
+        if (!game.over) game.update()
+        else {
+            game.end(cContext)
+            return
+        }
         game.draw(cContext)
         requestAnimationFrame(animate)
     }
