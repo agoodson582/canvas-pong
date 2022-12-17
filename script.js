@@ -1,5 +1,27 @@
 window.addEventListener('load', () => {
 
+    // Asset load
+    const ballImg = document.getElementById('ball')
+    const paddleHit = new Audio('assets/paddle_hit.mp3')
+    paddleHit.addEventListener('play', _ => {
+        setTimeout(() => {paddleHit.pause()}, 0.3 * 1000)
+    })
+    const paddleHitStamps = [4.03, 7.82, 11.71]
+    const wallHit = new Audio('assets/wall_hit.mp3')
+    const gotPoint = new Audio('assets/got_point.mp3')
+    gotPoint.volume = 0.04
+    const shatter = new Audio('assets/shatter.mp3')
+    shatter.volume = 0.2
+    const respawn = new Audio('assets/respawn.mp3')
+    respawn.addEventListener('play', _ => {
+        respawn.volume = 0.55
+        setTimeout(() => {
+            respawn.pause()
+            respawn.currentTime = 0
+        }, 1.18 * 1000)
+    })
+    const gameOver = new Audio('assets/game_over.mp3')
+
     class InputListener {
         constructor(game) {
             this.game = game
@@ -34,27 +56,45 @@ window.addEventListener('load', () => {
             // Ball bounces off either wall
             if (this.position.x < 0 || this.position.x > this.game.size.x - this.size.x) {
                 this.speed.x *= -1
+                wallHit.currentTime = 0.46
+                if (this.in) wallHit.play()
             }
 
             // Ball bounces off ceiling
             if (this.position.y < 0) {
                 this.speed.y *= -1
                 this.game.score++
+                gotPoint.play()
             }
 
             // Ball bounces off top of paddle
             if (this.game.checkCollision(this, this.game.paddle)
             && this.position.y < this.game.size.y - this.game.paddle.size.y - 30) {
+                let randomizer = Math.random()
+                switch (true) {
+                    case randomizer < 0.33:
+                        paddleHit.currentTime = paddleHitStamps[0]
+                        break
+                    case randomizer < 0.66:
+                        paddleHit.currentTime = paddleHitStamps[1]
+                        break
+                    default:
+                        paddleHit.currentTime = paddleHitStamps[paddleHitStamps.length - 1]
+                        break
+                }
                 this.speed.y *= -1
+                paddleHit.play()
             }
 
             // Ball goes past bottom of window
             if (this.position.y > this.game.size.y && this.in){
                 this.game.paddle.subtractLife()
+                shatter.play()
                 if (this.game.paddle.lives <= 0) {
                     this.game.over = true
                     return
                 }
+                setTimeout(() => {respawn.play()}, 1000)
                 setTimeout(this.respawn.bind(this), 2000)
                 this.in = false
             }
@@ -144,7 +184,7 @@ window.addEventListener('load', () => {
     class Game {
         constructor(size) {
             this.size = size
-            this.ball = new Ball(this, null)
+            this.ball = new Ball(this, ballImg)
             this.paddle = new Paddle(this)
             this.inputListener = new InputListener(this)
             this.keyEvents = []
@@ -176,6 +216,7 @@ window.addEventListener('load', () => {
         end(context) {
             this.draw(context)
             this.ui.drawGameOver(context)
+            setTimeout(() => {gameOver.play()}, 0.8 * 1000)
         }
     }
 
