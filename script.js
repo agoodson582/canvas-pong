@@ -42,12 +42,13 @@ window.addEventListener('load', () => {
     }
 
     class Ball {
-        constructor(game, image, speed = {x: 10, y: 8}, position = {x: 10, y: 10}) {
+        constructor(game, image, speed = {x: 10, y: 8}) {
             this.game = game
             this.image = image
             this.speed = speed
-            this.position = position
             this.size = {x: 30, y: 30}
+            this.position = {x: this.calcXPosition(), y: 10}
+            this.speed.x *= Math.random() > 0.5 ? 1 : -1
             this.in = true
         }
 
@@ -106,8 +107,12 @@ window.addEventListener('load', () => {
             : context.fillRect(this.position.x, this.position.y, this.size.x, this.size.y)
         }
 
+        calcXPosition() {
+            return Math.random() * (this.game.size.x - this.size.x - 20) + 10
+        }
+
         respawn() {
-            this.position = {x: 10, y: 10}
+            this.position = {x: this.calcXPosition(), y: 10}
             this.speed.x = 10
             this.in = true
         }
