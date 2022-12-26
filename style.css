@@ -4,15 +4,38 @@
     box-sizing: border-box;
 }
 
+body {
+    display: flex;
+    height: 100vh;
+    flex-direction: column;
+    align-items: center;
+}
+
 canvas {
     border: 3px solid black;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    /* position: absolute; */
+    /* top: 50%; */
+    /* left: 50%; */
+    /* transform: translate(-50%, -50%); */
     background: #fff;
     max-width: 100%;
-    max-height: 100%;
+}
+
+button#new-game {
+    font-size: 18px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding-block: 0.7em;
+    padding-inline: 1em;
+    color: #fff;
+    background-color: #20b2aa;
+    border: none;
+    border-radius: 0.45em;
+    cursor: pointer;
+}
+
+button#new-game:hover {
+    background-color: #198a84;
 }
 
 .game-asset {

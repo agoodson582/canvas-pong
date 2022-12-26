@@ -97,7 +97,8 @@ window.addEventListener('load', () => {
                     return
                 }
                 setTimeout(() => {respawn.play()}, 1000)
-                setTimeout(this.respawn.bind(this), 2000)
+                let timeoutID = setTimeout(this.respawn.bind(this), 2000)
+                timeoutIDs.push(timeoutID)
                 this.in = false
             }
         }
@@ -120,10 +121,11 @@ window.addEventListener('load', () => {
             this.position = {x: this.calcXPosition(), y: 10}
             this.speed = {x: 0, y: 0}
             this.in = true
-            setTimeout(() => {
+            let timeoutID = setTimeout(() => {
                 this.speed.x = this.originalSpeed.x * this.randomDirection()
                 this.speed.y = this.originalSpeed.y
             }, 1 * 1000);
+            timeoutIDs.push(timeoutID)
         }
     }
 
@@ -174,6 +176,7 @@ window.addEventListener('load', () => {
             context.font = `${this.fontSize}px ${this.fontFamily}`
 
             // Score
+            context.textAlign = 'left'
             context.fillText('Score: ' + this.game.score, 12, 30)
 
             // Lives
@@ -198,10 +201,13 @@ window.addEventListener('load', () => {
     class Game {
         constructor(size) {
             this.size = size
+            this.keyEvents = []
+        }
+
+        setup() {
             this.ball = new Ball(this, ballImg)
             this.paddle = new Paddle(this)
             this.inputListener = new InputListener(this)
-            this.keyEvents = []
             this.ui = new UI(this)
             this.score = 0
             this.over = false
@@ -230,7 +236,8 @@ window.addEventListener('load', () => {
         end(context) {
             this.draw(context)
             this.ui.drawGameOver(context)
-            setTimeout(() => {gameOver.play()}, 0.8 * 1000)
+            let timeoutID = setTimeout(() => {gameOver.play()}, 0.8 * 1000)
+            timeoutIDs.push(timeoutID)
         }
     }
 
@@ -244,11 +251,26 @@ window.addEventListener('load', () => {
             return
         }
         game.draw(cContext)
-        requestAnimationFrame(animate)
+        animateRequestID = requestAnimationFrame(animate)
     }
 
     function updatePosition(position, speed) {
         return {x: position.x + speed.x, y: position.y + speed.y}
+    }
+
+    function setupGame(context) {
+        if (animateRequestID)  cancelAnimationFrame(animateRequestID)
+        timeoutIDs.forEach(id => clearTimeout(id))
+        timeoutIDs = []
+
+        game.setup()
+        cContext.clearRect(0, 0, canvas.width, canvas.height)
+        game.draw(context)
+    
+        let timeoutID = setTimeout(() => {
+            animate()
+        }, 3 * 1000);
+        timeoutIDs.push(timeoutID)
     }
 
     // Canvas setup
@@ -257,13 +279,11 @@ window.addEventListener('load', () => {
 
     canvas.width = 1280
     canvas.height = 720
-
-    // Game setup
-    const game = new Game({x: canvas.width, y: canvas.height})
-    game.draw(cContext)
-    let lastTime = 0
     
-    setTimeout(() => {
-        animate()
-    }, 3 * 1000);
+    const game = new Game({x: canvas.width, y: canvas.height})
+    let timeoutIDs = []
+    let animateRequestID
+    let lastTime = 0
+
+    document.getElementById('new-game').addEventListener('click', () => setupGame(cContext))    
 })
