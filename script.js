@@ -13,12 +13,12 @@ window.addEventListener('load', () => {
     const shatter = new Audio('assets/shatter.mp3')
     shatter.volume = 0.2
     const respawn = new Audio('assets/respawn.mp3')
+    respawn.volume = 0.5
     respawn.addEventListener('play', _ => {
-        respawn.volume = 0.55
         setTimeout(() => {
             respawn.pause()
             respawn.currentTime = 0
-        }, 1.18 * 1000)
+        }, 2 * 1000)
     })
     const gameOver = new Audio('assets/game_over.mp3')
 
@@ -46,9 +46,10 @@ window.addEventListener('load', () => {
             this.game = game
             this.image = image
             this.speed = speed
+            this.originalSpeed = Object.assign({}, speed)
             this.size = {x: 30, y: 30}
             this.position = {x: this.calcXPosition(), y: 10}
-            this.speed.x *= Math.random() > 0.5 ? 1 : -1
+            this.speed.x *= this.randomDirection()
             this.in = true
         }
 
@@ -107,14 +108,22 @@ window.addEventListener('load', () => {
             : context.fillRect(this.position.x, this.position.y, this.size.x, this.size.y)
         }
 
+        randomDirection() {
+            return Math.random() > 0.5 ? 1 : -1
+        }
+
         calcXPosition() {
             return Math.random() * (this.game.size.x - this.size.x - 20) + 10
         }
 
         respawn() {
             this.position = {x: this.calcXPosition(), y: 10}
-            this.speed.x = 10
+            this.speed = {x: 0, y: 0}
             this.in = true
+            setTimeout(() => {
+                this.speed.x = this.originalSpeed.x * this.randomDirection()
+                this.speed.y = this.originalSpeed.y
+            }, 1 * 1000);
         }
     }
 
@@ -251,8 +260,10 @@ window.addEventListener('load', () => {
 
     // Game setup
     const game = new Game({x: canvas.width, y: canvas.height})
+    game.draw(cContext)
     let lastTime = 0
-
-    animate()
-
+    
+    setTimeout(() => {
+        animate()
+    }, 3 * 1000);
 })
