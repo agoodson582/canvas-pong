@@ -1,0 +1,19 @@
+{
+    "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+    "name": "Pong Marathon",
+    "start_url": ".",
+    "theme_color": "#198a84",
+    "display": "standalone",
+    "scope": "/",
+    "icons": [
+        {
+            "src": "assets/app-icons/icon.png",
+            "sizes": "any",
+            "type": "image/png"
+        }
+    ],
+    "background_color": "#ffffff",
+    "description": "Single-player pong action! Go for as long as you can!",
+    "categories": ["games", "kids"],
+    "orientation": "landscape"
+}
