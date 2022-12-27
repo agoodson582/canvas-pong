@@ -2,6 +2,7 @@ window.addEventListener('load', () => {
 
     // Asset load
     const ballImg = document.getElementById('ball')
+    const gameStart = new Audio('assets/game_start.mp3')
     const paddleHit = new Audio('assets/paddle_hit.mp3')
     paddleHit.addEventListener('play', _ => {
         setTimeout(() => {paddleHit.pause()}, 0.3 * 1000)
@@ -186,6 +187,17 @@ window.addEventListener('load', () => {
             context.restore()
         }
 
+        drawSplashScreen(context) {
+            context.fillStyle = this.color
+            context.font = `${this.fontSize * 3}px ${this.fontFamily}`
+            context.textAlign = 'center'
+
+            context.fillText('PONG MARATHON', this.game.size.x/2, this.game.size.y * 0.45)
+
+            context.font = `${this.fontSize * 1.5}px ${this.fontFamily}`
+            context.fillText('Select "New Game" below to start!', this.game.size.x/2, this.game.size.y * 0.6)
+        }
+
         drawGameOver(context) {
             context.fillStyle = this.color
             context.font = `${this.fontSize * 2.5}px ${this.fontFamily}`
@@ -201,6 +213,7 @@ window.addEventListener('load', () => {
     class Game {
         constructor(size) {
             this.size = size
+            this.ui = new UI(this)
             this.keyEvents = []
         }
 
@@ -208,9 +221,10 @@ window.addEventListener('load', () => {
             this.ball = new Ball(this, ballImg)
             this.paddle = new Paddle(this)
             this.inputListener = new InputListener(this)
-            this.ui = new UI(this)
             this.score = 0
             this.over = false
+            gameStart.currentTime = 0
+            gameStart.play()
         }
 
         update() {
@@ -269,7 +283,7 @@ window.addEventListener('load', () => {
     
         let timeoutID = setTimeout(() => {
             animate()
-        }, 3 * 1000);
+        }, 2 * 1000);
         timeoutIDs.push(timeoutID)
     }
 
@@ -281,6 +295,7 @@ window.addEventListener('load', () => {
     canvas.height = 720
     
     const game = new Game({x: canvas.width, y: canvas.height})
+    game.ui.drawSplashScreen(cContext)
     let timeoutIDs = []
     let animateRequestID
     let lastTime = 0
